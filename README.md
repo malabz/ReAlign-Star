@@ -23,7 +23,23 @@ make
 
 ### 2 Usage
 ```
+Usage: ./realign_star -i <input_file> [-o <output_file>] [-w <window_size>] [-l <length>] [-m <msa>]
 
+Options:
+  -i <input_file>    (required) Path to the input file containing sequence data.
+  -o <output_file>   (optional) Path to the output file for storing results. Default is 'realign_star_result.fasta'.
+  -w <window_size>   (optional) Window size for sequence processing. Default is 10.
+  -l <length>        (optional) Target length for sequence segments. Default is 5.
+  -m <msa>           (optional) MSA tool to use, options are 'halign3', 'mafft', or 'muscle3'. Default is 'mafft'.
+
+Examples:
+  ./program -i data.fasta -o results.fasta -w 20 -l 10 -m halign3
+  ./program -i data.fasta -m muscle3
+
+Note:
+  - The '-i' option is required.
+  - The '-m' option only supports 'halign3', 'mafft', and 'muscle3'.
+  - If '-w' or '-l' are not provided, default values of 10 and 5 will be used respectively.
 ```
 
 ## 🔬Test dataset and the use case

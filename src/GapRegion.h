@@ -83,7 +83,7 @@ std::vector<std::pair<int, int>> find_gap_regions_roughly(const std::string &seq
 }
 
 // Function to realign block
-std::vector<std::string> realign_block(const std::vector<std::string> &ids, const std::vector<std::string> &sequences, int start, int end) {
+std::vector<std::string> realign_block(std::string msa, const std::vector<std::string> &ids, const std::vector<std::string> &sequences, int start, int end) {
     std::vector<std::string> block_sequence;
 
     if (end - start >= 4) {
@@ -103,11 +103,14 @@ std::vector<std::string> realign_block(const std::vector<std::string> &ids, cons
         tmp_block.write_to(ofs);
         ofs.close();
 
-        // system("mafft tmp.fasta > tmp.aligned 2> /dev/null");
-        system("halign -o tmp.aligned tmp.fasta 2> /dev/null");
+        if (msa == "mafft") {
+            system("mafft tmp.fasta > tmp.aligned 2> /dev/null");
+        } else {
+            system("halign -o tmp.aligned tmp.fasta 2> /dev/null");
+
+        }
         
         auto after_realign_sequence = read_from("tmp.aligned");
-//        auto after_realign_sequence_preprocessed = preprocess(get<1>(after_realign_sequence));
         long long sp_after_realign = score(after_realign_sequence.sequences, 0, after_realign_sequence.sequences[0].size());
 
         std::cout << "****************************" << std::endl;
