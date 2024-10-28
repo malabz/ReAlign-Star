@@ -17,26 +17,10 @@ int main(int argc, char **argv) {
         displayHelp();
         return 0;
     }
-
-    // Step 1: Create a random tmp folder using timestamp and random number
-    auto timestamp = std::chrono::system_clock::now().time_since_epoch().count();
-    int random_number = rand() % 10000;
-    tmp_folder = "/tmp/realign_star_" + std::to_string(timestamp) + "_" + std::to_string(random_number);
-
-    // Step 2: Create the temporary folder
-    if (!std::filesystem::create_directory(tmp_folder)) {
-        std::cerr << "** Error: Failed to create temporary directory." << std::endl;
-        return 1;
-    }
-    std::cout << "Temporary folder created: " << tmp_folder << std::endl;
-
-    // Define the path to profileAlignment.jar in the install directory
-    const std::string jar_path = std::string(std::getenv("HOME")) + "/.realign_star/bin/profileAlignment.jar";
-
+    
     std::string input_file, window, length, msa;
     std::string output_file = "realign_star_result.fasta";
-    std::string garbage_file = tmp_folder + "/current_bad_sequence.fasta";
-    std::string realigned_profile = tmp_folder + "/realigned_profile.fasta";
+
 
     bool have_window_size = false;
     bool have_length_size = false;
@@ -90,11 +74,29 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    if (msa != "halign3" || msa != "mafft" || msa != "muscle3") {
+    if (msa != "halign3" && msa != "mafft" && msa != "muscle3") {
         std::cerr << "** Error: This MSA tool is not supported." << std::endl;
         displayHelp();
         return 1; 
     }
+
+    // Step 1: Create a random tmp folder using timestamp and random number
+    auto timestamp = std::chrono::system_clock::now().time_since_epoch().count();
+    int random_number = rand() % 10000;
+    tmp_folder = "/tmp/realign_star_" + std::to_string(timestamp) + "_" + std::to_string(random_number);
+
+    // Step 2: Create the temporary folder
+    if (!std::filesystem::create_directory(tmp_folder)) {
+        std::cerr << "** Error: Failed to create temporary directory." << std::endl;
+        return 1;
+    }
+    std::cout << "Temporary folder created: " << tmp_folder << std::endl;
+
+    // Define the path to profileAlignment.jar in the install directory
+    const std::string jar_path = std::string(std::getenv("HOME")) + "/.realign_star/bin/profileAlignment.jar";
+
+    std::string garbage_file = tmp_folder + "/current_bad_sequence.fasta";
+    std::string realigned_profile = tmp_folder + "/realigned_profile.fasta";
 
     std::vector<std::string> final_sequence;
     utils::Fasta alignment = read_from(input_file);
@@ -140,6 +142,7 @@ int main(int argc, char **argv) {
                 alignment.write_to(ofs);
                 ofs.close();
                 std::cout << "No bad blocks to realign." << std::endl;
+                std::filesystem::remove_all(tmp_folder);
                 exit(0);
             }
 
@@ -167,6 +170,7 @@ int main(int argc, char **argv) {
                 alignment.sequences = final_sequence;
                 alignment.write_to(ofs);
                 ofs.close();
+                std::filesystem::remove_all(tmp_folder);
                 exit(0);
             }
 
@@ -219,6 +223,7 @@ int main(int argc, char **argv) {
             alignment.sequences = final_sequence;
             alignment.write_to(ofs);
             ofs.close();
+            std::filesystem::remove_all(tmp_folder);
             exit(0);
         }
         
@@ -377,6 +382,7 @@ int main(int argc, char **argv) {
         std::ifstream jar_file(jar_path);
         if (!jar_file.good()) {
             std::cerr << "** Error: profileAlignment.jar not found in " << jar_path << ". Please ensure it is correctly located." << std::endl;
+            std::filesystem::remove_all(tmp_folder);
             return 1;
         }
         jar_file.close();
@@ -425,6 +431,7 @@ int main(int argc, char **argv) {
             alignment.write_to(ofs);
             ofs.close();
             std::cout << "No bad blocks to realign." << std::endl;
+            std::filesystem::remove_all(tmp_folder);
             exit(0);
         }
 
@@ -452,6 +459,7 @@ int main(int argc, char **argv) {
             alignment.sequences = final_sequence;
             alignment.write_to(ofs);
             ofs.close();
+            std::filesystem::remove_all(tmp_folder);
             exit(0);
         }
 
@@ -504,6 +512,7 @@ int main(int argc, char **argv) {
         alignment.sequences = final_sequence;
         alignment.write_to(ofs);
         ofs.close();
+        std::filesystem::remove_all(tmp_folder);
         exit(0);
     }
     
@@ -664,6 +673,7 @@ int main(int argc, char **argv) {
     std::ifstream jar_file(jar_path);
     if (!jar_file.good()) {
         std::cerr << "** Error: profileAlignment.jar not found in " << jar_path << ". Please ensure it is correctly located." << std::endl;
+        std::filesystem::remove_all(tmp_folder);
         return 1;
     }
     jar_file.close();
@@ -682,7 +692,7 @@ int main(int argc, char **argv) {
     }
 
     std::filesystem::remove_all(tmp_folder);
-    
+
     } 
 
     return 0;

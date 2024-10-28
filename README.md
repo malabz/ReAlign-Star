@@ -60,6 +60,18 @@ CIPRES-1024|2047|9|about 1550bp|The average similarity is about 80%
 CIPRES-2048|4095|9|about 1550bp|The average similarity is about 80%
 CIPRES-4096|8191|9|about 1550bp|The average similarity is about 80%
 
+### 2. The use case
+```shell
+# Download data
+wget http://lab.malab.cn/soft/ReAlign-Star/data/23s_rrna.tar.gz
+
+# Unzip data
+tar -zxvf 23s_rrna.tar.gz
+
+# Run ReAlign-Star
+./realign_star -i 23S_rRNA/halign3/23s_rRNA_halign3.fasta -o 23s_rrna_realign_star.fasta
+```
+
 ## 📍Reminder
 1. Currently ReAlign-Star is **ONLY** available for DNA/RNA. 
 3. Please ensure that the sequence ID entered into ReAlign-Star is unique.
