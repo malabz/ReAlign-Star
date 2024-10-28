@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
             return 1;
         }
     }
-    
+
     if (! have_window_size) {
         window = "10";
     }
@@ -394,8 +394,8 @@ int main(int argc, char **argv) {
             system(command_cp.c_str());
         }
 
-        system("rm tmp.*");
-        // system("curr_bad_sequences.fasta");
+        std::filesystem::remove_all(tmp_folder);
+
     } else {
         if (garbage_index.empty()) {
         
@@ -681,8 +681,8 @@ int main(int argc, char **argv) {
         system(command_cp.c_str());
     }
 
-    system("rm tmp.*");
-    // system("curr_bad_sequences.fasta");
+    std::filesystem::remove_all(tmp_folder);
+    
     } 
 
     return 0;
