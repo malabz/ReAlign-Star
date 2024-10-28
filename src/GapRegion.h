@@ -8,6 +8,8 @@
 #include <tuple>
 #include "Utils.h"
 
+extern std::string tmp_folder;
+
 std::pair<std::vector<std::string>, std::vector<std::string>> slice_alignment(const std::vector<std::string> &sequences, int start, int end) {
     std::vector<std::string> blocks;
     std::vector<std::string> blocks_sequences;
@@ -20,32 +22,6 @@ std::pair<std::vector<std::string>, std::vector<std::string>> slice_alignment(co
     }
     return make_pair(blocks, blocks_sequences);
 }
-
-// Function to find gap regions strictly in a sequence
-std::vector<std::pair<int, int>> find_gap_regions_strictly(const std::string_view &sequence) {
-    std::vector<std::pair<int, int>> regions;
-    int start = -1;
-
-    for (size_t i = 0; i < sequence.length(); ++i) {
-        if (sequence[i] == '-') {
-            if (start == -1) {
-                start = i;
-            }
-        } else {
-            if (start != -1) {
-                regions.emplace_back(start, i - 1);
-                start = -1;
-            }
-        }
-    }
-
-    if (start != -1) {
-        regions.emplace_back(start, sequence.length() - 1);
-    }
-
-    return regions;
-}
-
 
 // Function to find gap regions roughly in a sequence
 std::vector<std::pair<int, int>> find_gap_regions_roughly(const std::string &sequence, int max_non_gap_bases = 1, int min_region_length = 5) {
@@ -86,15 +62,18 @@ std::vector<std::pair<int, int>> find_gap_regions_roughly(const std::string &seq
 std::vector<std::string> realign_block(std::string msa, const std::vector<std::string> &ids, const std::vector<std::string> &sequences, int start, int end) {
     std::vector<std::string> block_sequence;
 
+    std::string raw_tmp = tmp_folder + "/tmp.fasta";
+    std::string aligned_tmp = tmp_folder + "/tmp.aligned";
+
     if (end - start >= 4) {
         auto before_realign_sequence = slice_alignment(sequences, start, end);
 //        auto before_realign_sequence_preprocessed = preprocess(before_realign_sequence.first);
         long long sp_before_realign = score(before_realign_sequence.first, 0, before_realign_sequence.first[0].size());
 
         utils::Fasta tmp_block;
-        std::ofstream ofs("tmp.fasta");
+        std::ofstream ofs(raw_tmp);
         if (!ofs) {
-            std::cerr << "Error: cannot open file tmp.fasta" << std::endl;
+            std::cerr << "Error: cannot open file " + raw_tmp << std::endl;
             std::cerr << "Please make sure the file path is correct and has appropriate permissions." << std::endl;
             exit(1);
         }
@@ -104,13 +83,15 @@ std::vector<std::string> realign_block(std::string msa, const std::vector<std::s
         ofs.close();
 
         if (msa == "mafft") {
-            system("mafft tmp.fasta > tmp.aligned 2> /dev/null");
+            std::string command_mafft = "mafft " + raw_tmp + " > " + aligned_tmp + " 2> /dev/null";
+            system(command_mafft.c_str());
         } else {
-            system("halign -o tmp.aligned tmp.fasta 2> /dev/null");
+            std::string command_halign3 = "halign -o " + raw_tmp + " " + aligned_tmp +" 2> /dev/null"; 
+            system(command_halign3.c_str());
 
         }
         
-        auto after_realign_sequence = read_from("tmp.aligned");
+        auto after_realign_sequence = read_from(aligned_tmp);
         long long sp_after_realign = score(after_realign_sequence.sequences, 0, after_realign_sequence.sequences[0].size());
 
         std::cout << "****************************" << std::endl;
@@ -133,15 +114,18 @@ std::vector<std::string> realign_block(std::string msa, const std::vector<std::s
 std::vector<std::string> realign_block_muscle(const std::vector<std::string> &ids, const std::vector<std::string> &sequences, int start, int end) {
     std::vector<std::string> block_sequence;
 
+    std::string raw_tmp = tmp_folder + "/tmp.fasta";
+    std::string aligned_tmp = tmp_folder + "/tmp.aligned";
+
     if (end - start >= 4) {
         auto before_realign_sequence = slice_alignment(sequences, start, end);
 //        auto before_realign_sequence_preprocessed = preprocess(before_realign_sequence.first);
         long long sp_before_realign = score(before_realign_sequence.first, 0, before_realign_sequence.first[0].size());
 
         utils::Fasta tmp_block;
-        std::ofstream ofs("tmp.fasta");
+        std::ofstream ofs(raw_tmp);
         if (!ofs) {
-            std::cerr << "Error: cannot open file tmp.fasta" << std::endl;
+            std::cerr << "Error: cannot open file " + raw_tmp << std::endl;
             std::cerr << "Please make sure the file path is correct and has appropriate permissions." << std::endl;
             exit(1);
         }
@@ -150,9 +134,9 @@ std::vector<std::string> realign_block_muscle(const std::vector<std::string> &id
         tmp_block.write_to(ofs);
         ofs.close();
 
-
-        system("muscle -in tmp.fasta -out tmp.aligned 2> /dev/null");
-        auto realigned_part_sequences = read_from("tmp.aligned");
+        std::string command_muscle3 = "muscle -in " + raw_tmp + " -out " + aligned_tmp + " 2> /dev/null"; 
+        system(command_muscle3.c_str());
+        auto realigned_part_sequences = read_from(aligned_tmp);
         int realigned_length = realigned_part_sequences.sequences[0].size();
 
         std::vector<std::string> after_realign_sequence;

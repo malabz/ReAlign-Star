@@ -138,7 +138,7 @@ std::vector<int> count_characters_between_dashes(const std::string& input) {
 }
 
 void displayHelp() {
-    std::cout << "Usage: program -i <input_file> [-o <output_file>] [-w <window_size>] [-l <length>] [-m <msa>]" << std::endl;
+    std::cout << "Usage: ./realign_star -i <input_file> [-o <output_file>] [-w <window_size>] [-l <length>] [-m <msa>]" << std::endl;
     std::cout << "\nOptions:\n";
     std::cout << "  -i <input_file>    (required) Path to the input file containing sequence data.\n";
     std::cout << "  -o <output_file>   (optional) Path to the output file for storing results. Default is 'realign_star_result.fasta'.\n";
@@ -146,8 +146,8 @@ void displayHelp() {
     std::cout << "  -l <length>        (optional) Target length for sequence segments. Default is 5.\n";
     std::cout << "  -m <msa>           (optional) MSA tool to use, options are 'halign3', 'mafft', or 'muscle3'. Default is 'mafft'.\n";
     std::cout << "\nExamples:\n";
-    std::cout << "  ./program -i data.fasta -o results.fasta -w 20 -l 10 -m halign3\n";
-    std::cout << "  ./program -i data.fasta -m muscle3\n";
+    std::cout << "  ./realign_star -i data.fasta -o results.fasta -w 20 -l 10 -m halign3\n";
+    std::cout << "  ./realign_star -i data.fasta -m muscle3\n";
     std::cout << "\nNote:\n";
     std::cout << "  - The '-i' option is required.\n";
     std::cout << "  - The '-m' option only supports 'halign3', 'mafft', and 'muscle3'.\n";

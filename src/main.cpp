@@ -2,10 +2,14 @@
 #include <unordered_set>
 #include <cstring>
 #include <algorithm>
+#include <filesystem>
+#include <chrono>
 #include "Fasta.h"
 #include "GapRegion.h"
 #include "Utils.h"
 #include "Garbage.h"
+
+std::string tmp_folder;
 
 int main(int argc, char **argv) {
     // Check if the program was called with no arguments or with the "-h" option
@@ -14,12 +18,29 @@ int main(int argc, char **argv) {
         return 0;
     }
 
+    // Step 1: Create a random tmp folder using timestamp and random number
+    auto timestamp = std::chrono::system_clock::now().time_since_epoch().count();
+    int random_number = rand() % 10000;
+    tmp_folder = "/tmp/realign_star_" + std::to_string(timestamp) + "_" + std::to_string(random_number);
+
+    // Step 2: Create the temporary folder
+    if (!std::filesystem::create_directory(tmp_folder)) {
+        std::cerr << "** Error: Failed to create temporary directory." << std::endl;
+        return 1;
+    }
+    std::cout << "Temporary folder created: " << tmp_folder << std::endl;
+
+    // Define the path to profileAlignment.jar in the install directory
+    const std::string jar_path = std::string(std::getenv("HOME")) + "/.realign_star/bin/profileAlignment.jar";
+
     std::string input_file, window, length, msa;
     std::string output_file = "realign_star_result.fasta";
+    std::string garbage_file = tmp_folder + "/current_bad_sequence.fasta";
+    std::string realigned_profile = tmp_folder + "/realigned_profile.fasta";
+
     bool have_window_size = false;
     bool have_length_size = false;
     bool have_msa = false;
-
 
     for (int i = 1; i < argc; i += 2) {
         std::string option = argv[i];
@@ -259,7 +280,7 @@ int main(int argc, char **argv) {
             profile.identifications = profile_identifications;
             profile.sequences = profile_sequences;
 
-            std::ofstream ofs("realigned_profile.fasta");
+            std::ofstream ofs(realigned_profile);
             profile.write_to(ofs);
             ofs.close();
         } else {
@@ -283,7 +304,7 @@ int main(int argc, char **argv) {
                 profile.identifications = profile_identifications;
                 profile.sequences = final_sequence;
 
-                std::ofstream ofs("realigned_profile.fasta");
+                std::ofstream ofs(realigned_profile);
                 profile.write_to(ofs);
                 ofs.close();
             } else {
@@ -340,7 +361,7 @@ int main(int argc, char **argv) {
                 profile.identifications = profile_identifications;
                 profile.sequences = final_sequence;
 
-                std::ofstream ofs("realigned_profile.fasta");
+                std::ofstream ofs(realigned_profile);
                 profile.write_to(ofs);
                 ofs.close();
             }
@@ -350,6 +371,17 @@ int main(int argc, char **argv) {
         garbages.identifications.resize(1, "");
         garbages.sequences.resize(1, "");
 
+        // Define the path to profileAlignment.jar in the install directory
+        const std::string jar_path = std::string(std::getenv("HOME")) + "/.realign_star/bin/profileAlignment.jar";
+
+        // Check if profileAlignment.jar exists
+        std::ifstream jar_file(jar_path);
+        if (!jar_file.good()) {
+            std::cerr << "** Error: profileAlignment.jar not found in " << jar_path << ". Please ensure it is correctly located." << std::endl;
+            return 1;
+        }
+        jar_file.close();
+
         for(int k = 0; k < garbage_index.size(); k++) {
             garbages.identifications[0] = garbage_identifications[k];
             garbages.sequences[0] = garbage_sequences[k];
@@ -357,9 +389,9 @@ int main(int argc, char **argv) {
             garbages.write_to(garbage_path);
             garbage_path.close();
 
-            std::string command_profile_to_seq = "java -jar profileAlignment.jar -i " + garbage_file + " realigned_profile.fasta -o " + output_file + " 2> /dev/null";
+            std::string command_profile_to_seq = "java -jar " + jar_path + " -i " + garbage_file + " " + realigned_profile +" -o " + output_file + " 2> /dev/null";
             system(command_profile_to_seq.c_str());
-            std::string command_cp = "cp " + output_file + " realigned_profile.fasta";
+            std::string command_cp = "cp " + output_file + " " + realigned_profile;
             system(command_cp.c_str());
         }
 
@@ -534,7 +566,7 @@ int main(int argc, char **argv) {
         profile.identifications = profile_identifications;
         profile.sequences = profile_sequences;
 
-        std::ofstream ofs("realigned_profile.fasta");
+        std::ofstream ofs(realigned_profile);
         profile.write_to(ofs);
         ofs.close();
     } else {
@@ -558,7 +590,7 @@ int main(int argc, char **argv) {
             profile.identifications = profile_identifications;
             profile.sequences = final_sequence;
 
-            std::ofstream ofs("realigned_profile.fasta");
+            std::ofstream ofs(realigned_profile);
             profile.write_to(ofs);
             ofs.close();
         } else {
@@ -615,7 +647,7 @@ int main(int argc, char **argv) {
             profile.identifications = profile_identifications;
             profile.sequences = final_sequence;
 
-            std::ofstream ofs("realigned_profile.fasta");
+            std::ofstream ofs(realigned_profile);
             profile.write_to(ofs);
             ofs.close();
         }
@@ -626,6 +658,17 @@ int main(int argc, char **argv) {
     garbages.identifications.resize(1, "");
     garbages.sequences.resize(1, "");
 
+    // Define the path to profileAlignment.jar in the install directory
+    const std::string jar_path = std::string(std::getenv("HOME")) + "/.realign_star/bin/profileAlignment.jar";
+
+    // Check if profileAlignment.jar exists
+    std::ifstream jar_file(jar_path);
+    if (!jar_file.good()) {
+        std::cerr << "** Error: profileAlignment.jar not found in " << jar_path << ". Please ensure it is correctly located." << std::endl;
+        return 1;
+    }
+    jar_file.close();
+
     for(int k = 0; k < garbage_index.size(); k++) {
         garbages.identifications[0] = garbage_identifications[k];
         garbages.sequences[0] = garbage_sequences[k];
@@ -633,9 +676,9 @@ int main(int argc, char **argv) {
         garbages.write_to(garbage_path);
         garbage_path.close();
 
-        std::string command_profile_to_seq = "java -jar profileAlignment.jar -i " + garbage_file + " realigned_profile.fasta -o " + output_file + " 2> /dev/null";
+        std::string command_profile_to_seq = "java -jar " + jar_path + " -i " + garbage_file + " " + realigned_profile +" -o " + output_file + " 2> /dev/null";
         system(command_profile_to_seq.c_str());
-        std::string command_cp = "cp " + output_file + " realigned_profile.fasta";
+        std::string command_cp = "cp " + output_file + " " + realigned_profile;
         system(command_cp.c_str());
     }
 
