@@ -33,8 +33,8 @@ Options:
   -m <msa>           (optional) MSA tool to use, options are 'halign3', 'mafft', or 'muscle3'. Default is 'mafft'.
 
 Examples:
-  ./program -i data.fasta -o results.fasta -w 20 -l 10 -m halign3
-  ./program -i data.fasta -m muscle3
+  ./realign_star -i data.fasta -o results.fasta -w 20 -l 10 -m halign3
+  ./realign_star -i data.fasta -m muscle3
 
 Note:
   - The '-i' option is required.
