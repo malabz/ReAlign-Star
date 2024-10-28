@@ -70,6 +70,18 @@ int main(int argc, char **argv) {
             return 1;
         }
     }
+    
+    if (! have_window_size) {
+        window = "10";
+    }
+
+    if (! have_length_size) {
+        length = "5";
+    }
+
+    if (! have_msa) {
+        msa = "mafft";
+    }
 
     // Check if required -i option is provided
     if (input_file.empty()) {
@@ -83,19 +95,6 @@ int main(int argc, char **argv) {
         displayHelp();
         return 1; 
     }
-
-    if (! have_window_size) {
-        window = "10";
-    }
-
-    if (! have_length_size) {
-        length = "5";
-    }
-
-    if (! have_msa) {
-        msa = "mafft";
-    }
-
 
     std::vector<std::string> final_sequence;
     utils::Fasta alignment = read_from(input_file);
